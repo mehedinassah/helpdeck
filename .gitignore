@@ -30,3 +30,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Local demo with a real baked-in API key (never commit secrets)
+widget/demo.local.html
