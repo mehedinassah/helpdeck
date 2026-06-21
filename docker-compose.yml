@@ -1,0 +1,21 @@
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    container_name: helpdeck-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: helpdeck
+      POSTGRES_PASSWORD: helpdeck
+      POSTGRES_DB: helpdeck
+    ports:
+      - "5432:5432"
+    volumes:
+      - helpdeck_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U helpdeck -d helpdeck"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  helpdeck_pgdata:

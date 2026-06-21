@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.local
+
+# Node / frontend
+node_modules/
+dist/
+build/
+.vite/
+
+# fastembed model cache
+.fastembed_cache/
+backend/.fastembed_cache/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Logs
+*.log

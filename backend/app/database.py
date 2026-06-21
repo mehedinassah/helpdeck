@@ -1,0 +1,36 @@
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+from .config import settings
+
+engine = create_engine(settings.database_url, pool_pre_ping=True, future=True)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False, future=True)
+Base = declarative_base()
+
+
+def init_db() -> None:
+    """Enable pgvector and create tables + vector index."""
+    # Import models so they register on Base.metadata
+    from . import models  # noqa: F401
+
+    with engine.begin() as conn:
+        conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+
+    Base.metadata.create_all(bind=engine)
+
+    # Approximate-nearest-neighbour index for cosine similarity.
+    with engine.begin() as conn:
+        conn.execute(
+            text(
+                "CREATE INDEX IF NOT EXISTS idx_chunks_embedding "
+                "ON chunks USING hnsw (embedding vector_cosine_ops)"
+            )
+        )
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
