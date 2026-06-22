@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { FileText, Upload, Trash2, Plus, BookOpen } from "lucide-react";
 import { api, type Document } from "../api";
 
 export default function Documents({
@@ -79,15 +80,24 @@ export default function Documents({
     }
   }
 
+  const inputCls =
+    "w-full rounded-xl border border-slate-300 bg-white px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 outline-none transition focus:border-indigo-500 focus:ring-4 focus:ring-indigo-100";
+
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-sm font-semibold text-slate-700">
-          Knowledge base{" "}
-          <span className="text-slate-400 font-normal">({docs.length})</span>
-        </h3>
-        <label className="text-xs font-medium px-3 py-1.5 rounded-lg border border-slate-300 hover:bg-slate-50 cursor-pointer transition">
-          {busy ? "Working…" : "Upload .txt / .md / .pdf"}
+    <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm sm:p-6">
+      <div className="mb-5 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2.5">
+          <span className="grid size-9 place-items-center rounded-xl bg-indigo-50 text-indigo-600">
+            <BookOpen className="size-4.5" />
+          </span>
+          <div>
+            <h3 className="text-sm font-semibold text-slate-800">Knowledge base</h3>
+            <p className="text-xs text-slate-400">{docs.length} document{docs.length !== 1 ? "s" : ""}</p>
+          </div>
+        </div>
+        <label className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50">
+          <Upload className="size-4" />
+          {busy ? "Working…" : "Upload file"}
           <input
             ref={fileRef}
             type="file"
@@ -100,58 +110,72 @@ export default function Documents({
       </div>
 
       {/* Add text doc */}
-      <form onSubmit={addText} className="space-y-2 mb-5">
+      <form onSubmit={addText} className="space-y-2.5">
         <input
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Document title (e.g. Refund policy)"
-          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none"
+          className={inputCls}
         />
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Paste your FAQ, policy, or any text the assistant should know…"
           rows={4}
-          className="w-full px-3 py-2 text-sm rounded-lg border border-slate-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none resize-y"
+          className={`${inputCls} resize-y`}
         />
         <button
           disabled={busy || !title.trim() || !content.trim()}
-          className="px-4 py-2 text-sm rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-medium transition disabled:opacity-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-50"
         >
-          Add to knowledge base
+          <Plus className="size-4" /> Add to knowledge base
         </button>
       </form>
 
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p className="mt-3 text-sm text-red-600">{error}</p>}
 
-      {/* Doc list */}
-      {loading ? (
-        <p className="text-sm text-slate-400">Loading…</p>
-      ) : docs.length === 0 ? (
-        <p className="text-sm text-slate-400 text-center py-6">
-          No documents yet. Add one above to give your assistant knowledge.
-        </p>
-      ) : (
-        <ul className="divide-y divide-slate-100">
-          {docs.map((d) => (
-            <li key={d.id} className="flex items-center justify-between py-2.5">
-              <div className="min-w-0">
-                <p className="text-sm font-medium text-slate-700 truncate">{d.title}</p>
-                <p className="text-xs text-slate-400">
-                  {d.source} · {d.chunk_count} chunks · {d.status}
-                </p>
-              </div>
-              <button
-                onClick={() => remove(d.id)}
-                disabled={busy}
-                className="text-xs text-slate-400 hover:text-red-600 transition px-2 py-1"
+      {/* List */}
+      <div className="mt-5 border-t border-slate-100 pt-4">
+        {loading ? (
+          <p className="text-sm text-slate-400">Loading…</p>
+        ) : docs.length === 0 ? (
+          <div className="flex flex-col items-center gap-2 py-8 text-center">
+            <span className="grid size-10 place-items-center rounded-xl bg-slate-50 text-slate-300">
+              <FileText className="size-5" />
+            </span>
+            <p className="text-sm text-slate-400">No documents yet. Add one above to give your assistant knowledge.</p>
+          </div>
+        ) : (
+          <ul className="space-y-1">
+            {docs.map((d) => (
+              <li
+                key={d.id}
+                className="group flex items-center justify-between gap-3 rounded-xl px-2.5 py-2.5 transition-colors hover:bg-slate-50"
               >
-                Delete
-              </button>
-            </li>
-          ))}
-        </ul>
-      )}
+                <div className="flex min-w-0 items-center gap-3">
+                  <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-slate-100 text-slate-500">
+                    <FileText className="size-4" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-slate-800">{d.title}</p>
+                    <p className="text-xs text-slate-400">
+                      {d.source} · {d.chunk_count} chunk{d.chunk_count !== 1 ? "s" : ""} · {d.status}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => remove(d.id)}
+                  disabled={busy}
+                  aria-label={`Delete ${d.title}`}
+                  className="grid size-8 shrink-0 place-items-center rounded-lg text-slate-300 transition-colors hover:bg-red-50 hover:text-red-600 disabled:opacity-50 sm:opacity-0 sm:group-hover:opacity-100"
+                >
+                  <Trash2 className="size-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
