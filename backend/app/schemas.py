@@ -12,6 +12,7 @@ class TenantOut(BaseModel):
     api_key: str
     plan: str
     message_limit: int
+    source: str = "standalone"
     created_at: datetime
 
     class Config:

@@ -22,6 +22,8 @@ class Tenant(Base):
     api_key: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     plan: Mapped[str] = mapped_column(String(32), default="free", nullable=False)
     message_limit: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
+    # Where the tenant originated: "standalone" (own signup) or "perico" (partner-provisioned)
+    source: Mapped[str] = mapped_column(String(32), default="standalone", nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     documents: Mapped[list["Document"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")

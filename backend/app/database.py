@@ -18,12 +18,19 @@ def init_db() -> None:
 
     Base.metadata.create_all(bind=engine)
 
-    # Approximate-nearest-neighbour index for cosine similarity.
     with engine.begin() as conn:
+        # Approximate-nearest-neighbour index for cosine similarity.
         conn.execute(
             text(
                 "CREATE INDEX IF NOT EXISTS idx_chunks_embedding "
                 "ON chunks USING hnsw (embedding vector_cosine_ops)"
+            )
+        )
+        # Lightweight, idempotent column migrations (create_all won't ALTER).
+        conn.execute(
+            text(
+                "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS "
+                "source varchar(32) NOT NULL DEFAULT 'standalone'"
             )
         )
 

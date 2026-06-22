@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     llm_base_url: str = "https://api.groq.com/openai/v1"
     llm_model: str = "llama-3.3-70b-versatile"
 
+    # Platform integration: trusted partners (e.g. Perico) provision tenants
+    # server-to-server using this key via the X-Platform-Key header.
+    platform_api_key: str = ""
+
     # Embeddings (local via fastembed)
     embedding_model: str = "BAAI/bge-small-en-v1.5"
     embedding_dim: int = 384
