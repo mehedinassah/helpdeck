@@ -1,0 +1,12 @@
+# Keep the backend image small and secret-free
+frontend
+.git
+**/.venv
+**/__pycache__
+**/*.pyc
+**/.env
+**/.env.local
+**/node_modules
+**/.fastembed_cache
+**/.pytest_cache
+*.md

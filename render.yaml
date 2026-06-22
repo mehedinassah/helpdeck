@@ -1,0 +1,32 @@
+# Render Blueprint — deploy the Helpdeck backend on the free tier.
+# In Render: New → Blueprint → pick this repo. Then fill the secret env vars.
+services:
+  - type: web
+    name: helpdeck-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL          # Neon connection (postgresql+psycopg2://...)
+        sync: false
+      - key: LLM_API_KEY           # Groq key
+        sync: false
+      - key: LLM_BASE_URL
+        value: https://api.groq.com/openai/v1
+      - key: LLM_MODEL
+        value: llama-3.3-70b-versatile
+      - key: PLATFORM_API_KEY      # shared secret for Perico integration
+        sync: false
+      - key: CORS_ORIGINS
+        value: "*"
+      - key: EMBEDDING_MODEL
+        value: BAAI/bge-small-en-v1.5
+      - key: EMBEDDING_DIM
+        value: "384"
+      # Set these to your deployed dashboard URL once Vercel is live:
+      - key: BILLING_SUCCESS_URL
+        sync: false
+      - key: BILLING_CANCEL_URL
+        sync: false
