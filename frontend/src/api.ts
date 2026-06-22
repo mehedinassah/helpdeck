@@ -27,6 +27,20 @@ export interface Usage {
   messages_remaining: number;
 }
 
+export interface PlanInfo {
+  id: string;
+  name: string;
+  price_usd: number;
+  message_limit: number;
+}
+
+export interface PlansResponse {
+  configured: boolean;
+  current_plan: string;
+  status: string;
+  plans: PlanInfo[];
+}
+
 async function handle<T>(res: Response): Promise<T> {
   if (!res.ok) {
     let detail = `HTTP ${res.status}`;
@@ -95,5 +109,26 @@ export const api = {
       method: "DELETE",
       headers: authHeaders(apiKey),
     }).then((r) => handle<{ deleted: string }>(r));
+  },
+
+  getPlans(apiKey: string): Promise<PlansResponse> {
+    return fetch(`${API_URL}/api/billing/plans`, { headers: authHeaders(apiKey) }).then((r) =>
+      handle<PlansResponse>(r)
+    );
+  },
+
+  checkout(apiKey: string, plan: string): Promise<{ url: string }> {
+    return fetch(`${API_URL}/api/billing/checkout`, {
+      method: "POST",
+      headers: authHeaders(apiKey),
+      body: JSON.stringify({ plan }),
+    }).then((r) => handle<{ url: string }>(r));
+  },
+
+  portal(apiKey: string): Promise<{ url: string }> {
+    return fetch(`${API_URL}/api/billing/portal`, {
+      method: "POST",
+      headers: authHeaders(apiKey),
+    }).then((r) => handle<{ url: string }>(r));
   },
 };

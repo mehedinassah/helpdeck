@@ -13,6 +13,7 @@ class TenantOut(BaseModel):
     plan: str
     message_limit: int
     source: str = "standalone"
+    status: str = "active"
     created_at: datetime
 
     class Config:

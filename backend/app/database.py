@@ -33,6 +33,14 @@ def init_db() -> None:
                 "source varchar(32) NOT NULL DEFAULT 'standalone'"
             )
         )
+        conn.execute(
+            text(
+                "ALTER TABLE tenants ADD COLUMN IF NOT EXISTS "
+                "status varchar(32) NOT NULL DEFAULT 'active'"
+            )
+        )
+        conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_customer_id varchar(64)"))
+        conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_subscription_id varchar(64)"))
 
 
 def get_db():

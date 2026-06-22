@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import init_db
-from .routers import tenants, documents, chat, platform
+from .routers import tenants, documents, chat, platform, billing
 
 WIDGET_DIR = Path(__file__).resolve().parents[2] / "widget"
 
@@ -32,6 +32,7 @@ app.include_router(tenants.router)
 app.include_router(documents.router)
 app.include_router(chat.router)
 app.include_router(platform.router)
+app.include_router(billing.router)
 
 # Serve the embeddable widget + demo page (widget.js, demo.html)
 if WIDGET_DIR.exists():

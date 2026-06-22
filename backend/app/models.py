@@ -24,6 +24,11 @@ class Tenant(Base):
     message_limit: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
     # Where the tenant originated: "standalone" (own signup) or "perico" (partner-provisioned)
     source: Mapped[str] = mapped_column(String(32), default="standalone", nullable=False)
+    # Subscription status: "active" | "inactive" (free tier is always active)
+    status: Mapped[str] = mapped_column(String(32), default="active", nullable=False)
+    # Stripe (standalone billing)
+    stripe_customer_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    stripe_subscription_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     documents: Mapped[list["Document"]] = relationship(back_populates="tenant", cascade="all, delete-orphan")

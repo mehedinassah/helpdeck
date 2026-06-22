@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     chunk_overlap: int = 150
     retrieval_top_k: int = 5
 
+    # Stripe billing (standalone global USD plans). Test-mode keys are fine.
+    stripe_secret_key: str = ""
+    stripe_webhook_secret: str = ""
+    stripe_price_pro: str = ""        # Stripe Price ID for the Pro plan
+    stripe_price_business: str = ""   # Stripe Price ID for the Business plan
+    # Where Stripe redirects after checkout (the standalone dashboard).
+    billing_success_url: str = "http://localhost:5173/?checkout=success"
+    billing_cancel_url: str = "http://localhost:5173/?checkout=cancelled"
+
     # CORS (comma-separated, or "*")
     cors_origins: str = "*"
 

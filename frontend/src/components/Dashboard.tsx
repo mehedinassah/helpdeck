@@ -3,6 +3,7 @@ import { api, type Tenant, type Usage } from "../api";
 import Documents from "./Documents";
 import EmbedSnippet from "./EmbedSnippet";
 import UsageCard from "./UsageCard";
+import Billing from "./Billing";
 
 export default function Dashboard({
   apiKey,
@@ -87,6 +88,7 @@ export default function Dashboard({
           </div>
           <div className="space-y-6">
             <UsageCard usage={usage} />
+            <Billing apiKey={apiKey} />
             <div className="bg-white rounded-xl border border-slate-200 p-5">
               <h3 className="text-sm font-semibold text-slate-700 mb-2">Test your assistant</h3>
               <p className="text-xs text-slate-500 leading-relaxed">
