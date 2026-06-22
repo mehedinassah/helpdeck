@@ -7,7 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from .config import settings
 from .database import init_db
-from .routers import tenants, documents, chat, platform, billing
+from .routers import tenants, documents, chat, platform, billing, auth
 
 WIDGET_DIR = Path(__file__).resolve().parents[2] / "widget"
 
@@ -28,6 +28,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.include_router(auth.router)
 app.include_router(tenants.router)
 app.include_router(documents.router)
 app.include_router(chat.router)

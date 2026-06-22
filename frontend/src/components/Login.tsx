@@ -6,6 +6,8 @@ interface Props {
   onAuthed: (apiKey: string) => void;
 }
 
+type Mode = "signup" | "login" | "key";
+
 const PERKS = [
   { icon: FileText, label: "Train it on your own docs & PDFs" },
   { icon: Code2, label: "Embed with one line of code" },
@@ -13,19 +15,20 @@ const PERKS = [
 ];
 
 export default function Login({ onAuthed }: Props) {
-  const [mode, setMode] = useState<"signup" | "login">("signup");
+  const [mode, setMode] = useState<Mode>("signup");
   const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [apiKey, setApiKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  async function handleSignup(e: React.FormEvent) {
-    e.preventDefault();
+  async function run(fn: () => Promise<{ api_key: string }>) {
     setError("");
     setLoading(true);
     try {
-      const tenant = await api.createTenant(name.trim() || "My Business");
-      onAuthed(tenant.api_key);
+      const t = await fn();
+      onAuthed(t.api_key);
     } catch (err) {
       setError((err as Error).message);
     } finally {
@@ -33,18 +36,11 @@ export default function Login({ onAuthed }: Props) {
     }
   }
 
-  async function handleLogin(e: React.FormEvent) {
+  function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError("");
-    setLoading(true);
-    try {
-      await api.me(apiKey.trim());
-      onAuthed(apiKey.trim());
-    } catch {
-      setError("Invalid API key");
-    } finally {
-      setLoading(false);
-    }
+    if (mode === "signup") run(() => api.signup(email.trim(), password, name.trim()));
+    else if (mode === "login") run(() => api.login(email.trim(), password));
+    else run(() => api.me(apiKey.trim()));
   }
 
   const inputCls =
@@ -90,46 +86,71 @@ export default function Login({ onAuthed }: Props) {
             <Bot className="size-5.5" />
           </div>
           <h1 className="mt-3 text-2xl font-bold tracking-tight text-slate-900">
-            {mode === "signup" ? "Create your account" : "Welcome back"}
+            {mode === "signup" ? "Create your account" : mode === "login" ? "Welcome back" : "Sign in with API key"}
           </h1>
           <p className="mt-1 text-sm text-slate-500">
-            {mode === "signup" ? "Spin up your AI assistant — no card required." : "Enter your API key to continue."}
+            {mode === "signup"
+              ? "Spin up your AI assistant — no card required."
+              : mode === "login"
+                ? "Sign in to manage your assistant."
+                : "Paste your API key to continue."}
           </p>
 
-          <div className="mt-6 flex gap-1 rounded-xl bg-slate-100 p-1">
-            <button
-              onClick={() => setMode("signup")}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Create account
-            </button>
-            <button
-              onClick={() => setMode("login")}
-              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
-                mode === "login" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              I have a key
-            </button>
-          </div>
+          {mode !== "key" && (
+            <div className="mt-6 flex gap-1 rounded-xl bg-slate-100 p-1">
+              <button
+                onClick={() => setMode("signup")}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+                  mode === "signup" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Create account
+              </button>
+              <button
+                onClick={() => setMode("login")}
+                className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all ${
+                  mode === "login" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                Sign in
+              </button>
+            </div>
+          )}
 
-          {mode === "signup" ? (
-            <form onSubmit={handleSignup} className="mt-5 space-y-4">
+          <form onSubmit={onSubmit} className="mt-5 space-y-4">
+            {mode === "signup" && (
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">Business name</label>
                 <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Acme Inc" className={inputCls} />
               </div>
-              <button
-                disabled={loading}
-                className="w-full rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:shadow-md active:scale-[0.99] disabled:opacity-50"
-              >
-                {loading ? "Creating…" : "Create account & get API key"}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleLogin} className="mt-5 space-y-4">
+            )}
+
+            {mode !== "key" ? (
+              <>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Email</label>
+                  <input
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@company.com"
+                    className={inputCls}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1.5 block text-sm font-medium text-slate-700">Password</label>
+                  <input
+                    type="password"
+                    autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder={mode === "signup" ? "At least 8 characters" : "Your password"}
+                    className={inputCls}
+                  />
+                </div>
+              </>
+            ) : (
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">API key</label>
                 <input
@@ -139,18 +160,39 @@ export default function Login({ onAuthed }: Props) {
                   className={`${inputCls} font-mono`}
                 />
               </div>
-              <button
-                disabled={loading}
-                className="w-full rounded-xl bg-slate-900 py-2.5 text-sm font-semibold text-white transition-all hover:bg-slate-700 active:scale-[0.99] disabled:opacity-50"
-              >
-                {loading ? "Checking…" : "Continue"}
-              </button>
-            </form>
-          )}
+            )}
+
+            <button
+              disabled={loading}
+              className={`w-full rounded-xl py-2.5 text-sm font-semibold text-white transition-all active:scale-[0.99] disabled:opacity-50 ${
+                mode === "signup"
+                  ? "bg-gradient-to-r from-indigo-500 to-violet-600 shadow-sm hover:shadow-md"
+                  : "bg-slate-900 hover:bg-slate-700"
+              }`}
+            >
+              {loading
+                ? "Please wait…"
+                : mode === "signup"
+                  ? "Create account"
+                  : mode === "login"
+                    ? "Sign in"
+                    : "Continue"}
+            </button>
+          </form>
 
           {error && <p className="mt-4 text-sm text-red-600">{error}</p>}
 
-          <p className="mt-6 text-center text-xs text-slate-400">AI customer-support widget for your website</p>
+          <div className="mt-6 text-center">
+            {mode !== "key" ? (
+              <button onClick={() => { setMode("key"); setError(""); }} className="text-xs font-medium text-slate-400 hover:text-slate-600">
+                Sign in with an API key instead
+              </button>
+            ) : (
+              <button onClick={() => { setMode("login"); setError(""); }} className="text-xs font-medium text-slate-400 hover:text-slate-600">
+                ← Back to email sign in
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

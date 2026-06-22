@@ -6,9 +6,21 @@ class TenantCreate(BaseModel):
     name: str
 
 
+class SignupRequest(BaseModel):
+    email: str
+    password: str
+    name: str | None = None
+
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+
 class TenantOut(BaseModel):
     id: str
     name: str
+    email: str | None = None
     api_key: str
     widget_key: str | None = None
     allowed_domains: str | None = None

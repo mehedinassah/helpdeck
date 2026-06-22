@@ -19,6 +19,9 @@ class Tenant(Base):
 
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Email + password login (standalone). Nullable for partner-provisioned tenants.
+    email: Mapped[str | None] = mapped_column(String(255), unique=True, index=True, nullable=True)
+    password_hash: Mapped[str | None] = mapped_column(Text, nullable=True)
     api_key: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
     # Publishable, chat-only key safe to embed in a website (separate from the secret api_key).
     widget_key: Mapped[str | None] = mapped_column(String(64), unique=True, index=True, nullable=True)

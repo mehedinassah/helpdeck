@@ -70,6 +70,22 @@ export const api = {
     }).then((r) => handle<Tenant>(r));
   },
 
+  signup(email: string, password: string, name: string): Promise<Tenant> {
+    return fetch(`${API_URL}/api/auth/signup`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
+    }).then((r) => handle<Tenant>(r));
+  },
+
+  login(email: string, password: string): Promise<Tenant> {
+    return fetch(`${API_URL}/api/auth/login`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password }),
+    }).then((r) => handle<Tenant>(r));
+  },
+
   me(apiKey: string): Promise<Tenant> {
     return fetch(`${API_URL}/api/me`, { headers: authHeaders(apiKey) }).then((r) =>
       handle<Tenant>(r)
