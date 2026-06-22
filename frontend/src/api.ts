@@ -6,6 +6,8 @@ export interface Tenant {
   id: string;
   name: string;
   api_key: string;
+  widget_key: string | null;
+  allowed_domains: string | null;
   plan: string;
   message_limit: number;
   created_at: string;

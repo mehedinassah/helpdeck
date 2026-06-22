@@ -2,12 +2,12 @@ import { useState } from "react";
 import { Code2, Copy, Check } from "lucide-react";
 import { API_URL } from "../api";
 
-export default function EmbedSnippet({ apiKey, name }: { apiKey: string; name: string }) {
+export default function EmbedSnippet({ widgetKey, name }: { widgetKey: string; name: string }) {
   const [copied, setCopied] = useState(false);
 
   const snippet = `<script
   src="${API_URL}/widget/widget.js"
-  data-api-key="${apiKey}"
+  data-widget-key="${widgetKey || "wk_…"}"
   data-api-url="${API_URL}"
   data-title="${name} Support"
   data-accent="#4f46e5">

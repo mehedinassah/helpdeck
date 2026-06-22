@@ -10,6 +10,8 @@ class TenantOut(BaseModel):
     id: str
     name: str
     api_key: str
+    widget_key: str | None = None
+    allowed_domains: str | None = None
     plan: str
     message_limit: int
     source: str = "standalone"

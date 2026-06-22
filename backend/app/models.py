@@ -20,6 +20,10 @@ class Tenant(Base):
     id: Mapped[str] = mapped_column(UUID(as_uuid=False), primary_key=True, default=_uuid)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     api_key: Mapped[str] = mapped_column(String(64), unique=True, index=True, nullable=False)
+    # Publishable, chat-only key safe to embed in a website (separate from the secret api_key).
+    widget_key: Mapped[str | None] = mapped_column(String(64), unique=True, index=True, nullable=True)
+    # Optional comma-separated domain allowlist for the widget (e.g. "acme.com,www.acme.com").
+    allowed_domains: Mapped[str | None] = mapped_column(Text, nullable=True)
     plan: Mapped[str] = mapped_column(String(32), default="free", nullable=False)
     message_limit: Mapped[int] = mapped_column(Integer, default=100, nullable=False)
     # Where the tenant originated: "standalone" (own signup) or "perico" (partner-provisioned)

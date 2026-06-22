@@ -2,10 +2,13 @@
  * Helpdeck embeddable chat widget.
  * Usage:
  *   <script src="http://localhost:8000/widget/widget.js"
- *           data-api-key="hd_xxx"
+ *           data-widget-key="wk_xxx"
  *           data-api-url="http://localhost:8000"
  *           data-title="Acme Support"
  *           data-accent="#4f46e5"></script>
+ *
+ * Use the publishable data-widget-key (safe to expose). data-api-key is still
+ * accepted for backwards compatibility but should not be used on public sites.
  *
  * Renders in a Shadow DOM so host-site CSS cannot interfere.
  */
@@ -19,15 +22,18 @@
       return s[s.length - 1];
     })();
 
+  var WIDGET_KEY = script.getAttribute("data-widget-key") || "";
   var API_KEY = script.getAttribute("data-api-key") || "";
+  var AUTH_HEADER = WIDGET_KEY ? "X-Widget-Key" : "X-API-Key";
+  var AUTH_VALUE = WIDGET_KEY || API_KEY;
   var API_URL = (script.getAttribute("data-api-url") || "http://localhost:8000").replace(/\/$/, "");
   var TITLE = script.getAttribute("data-title") || "AI Assistant";
   var ACCENT = script.getAttribute("data-accent") || "#4f46e5";
   var GREETING =
     script.getAttribute("data-greeting") || "Hi! 👋 Ask me anything about our product or service.";
 
-  if (!API_KEY) {
-    console.error("[Helpdeck] Missing data-api-key on the widget <script> tag.");
+  if (!AUTH_VALUE) {
+    console.error("[Helpdeck] Missing data-widget-key on the widget <script> tag.");
     return;
   }
 
@@ -149,9 +155,11 @@
     var typing = addTyping();
     var botEl = null;
 
+    var headers = { "Content-Type": "application/json" };
+    headers[AUTH_HEADER] = AUTH_VALUE;
     fetch(API_URL + "/api/chat", {
       method: "POST",
-      headers: { "Content-Type": "application/json", "X-API-Key": API_KEY },
+      headers: headers,
       body: JSON.stringify({ message: question, conversation_id: conversationId }),
     })
       .then(function (res) {

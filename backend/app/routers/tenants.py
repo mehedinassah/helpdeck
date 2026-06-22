@@ -7,14 +7,23 @@ from ..database import get_db
 from ..deps import get_current_tenant
 from ..models import Tenant, Message
 from ..schemas import TenantCreate, TenantOut, UsageOut
+from pydantic import BaseModel
 
 router = APIRouter(prefix="/api", tags=["tenants"])
+
+
+class DomainsUpdate(BaseModel):
+    allowed_domains: str | None = None  # comma-separated; empty/None = allow any domain
 
 
 @router.post("/tenants", response_model=TenantOut)
 def create_tenant(payload: TenantCreate, db: Session = Depends(get_db)):
     """Sign up a business and issue an API key for the widget."""
-    tenant = Tenant(name=payload.name, api_key="hd_" + secrets.token_urlsafe(32))
+    tenant = Tenant(
+        name=payload.name,
+        api_key="hd_" + secrets.token_urlsafe(32),
+        widget_key="wk_" + secrets.token_urlsafe(24),
+    )
     db.add(tenant)
     db.commit()
     db.refresh(tenant)
@@ -23,6 +32,20 @@ def create_tenant(payload: TenantCreate, db: Session = Depends(get_db)):
 
 @router.get("/me", response_model=TenantOut)
 def me(tenant: Tenant = Depends(get_current_tenant)):
+    return tenant
+
+
+@router.patch("/settings/domains", response_model=TenantOut)
+def update_domains(
+    payload: DomainsUpdate,
+    tenant: Tenant = Depends(get_current_tenant),
+    db: Session = Depends(get_db),
+):
+    """Set the widget domain allowlist (comma-separated). Empty = allow any domain."""
+    cleaned = (payload.allowed_domains or "").strip()
+    tenant.allowed_domains = cleaned or None
+    db.commit()
+    db.refresh(tenant)
     return tenant
 
 

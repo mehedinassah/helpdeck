@@ -1,18 +1,44 @@
 import json
 import uuid
+from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 
+from ..config import settings
 from ..database import SessionLocal, get_db
-from ..deps import get_current_tenant
+from ..deps import get_tenant_for_chat
 from ..models import Tenant, Message
 from ..schemas import ChatRequest
 from ..services.retrieval import retrieve, build_context
 from ..services.llm import build_messages, stream_chat
+from ..services import ratelimit
 
 router = APIRouter(prefix="/api", tags=["chat"])
+
+
+def _client_ip(request: Request) -> str:
+    fwd = request.headers.get("x-forwarded-for")
+    if fwd:
+        return fwd.split(",")[0].strip()
+    return request.client.host if request.client else "unknown"
+
+
+def _check_domain(tenant: Tenant, request: Request) -> None:
+    """If the tenant set an allowlist, the request's Origin/Referer host must match."""
+    if not tenant.allowed_domains:
+        return
+    allowed = {d.strip().lower() for d in tenant.allowed_domains.split(",") if d.strip()}
+    if not allowed:
+        return
+    origin = request.headers.get("origin") or request.headers.get("referer") or ""
+    host = urlparse(origin).hostname or ""
+    host = host.lower()
+    # allow exact match or subdomain of an allowed domain
+    ok = any(host == d or host.endswith("." + d) for d in allowed)
+    if not ok:
+        raise HTTPException(status_code=403, detail="This domain is not allowed to use this widget")
 
 
 def _check_quota(db: Session, tenant: Tenant) -> None:
@@ -28,7 +54,8 @@ def _check_quota(db: Session, tenant: Tenant) -> None:
 @router.post("/chat")
 def chat(
     payload: ChatRequest,
-    tenant: Tenant = Depends(get_current_tenant),
+    request: Request,
+    tenant: Tenant = Depends(get_tenant_for_chat),
     db: Session = Depends(get_db),
 ):
     """RAG chat with Server-Sent-Events streaming.
@@ -38,11 +65,20 @@ def chat(
       - {"type": "token", "text": "..."}
       - {"type": "done", "conversation_id": "..."}
     """
+    # Abuse protection: domain allowlist + rate limits + message size cap.
+    _check_domain(tenant, request)
+    if not ratelimit.check(f"chat:tenant:{tenant.id}", settings.chat_rate_per_tenant_per_min):
+        raise HTTPException(status_code=429, detail="Too many requests — please slow down")
+    if not ratelimit.check(f"chat:ip:{_client_ip(request)}", settings.chat_rate_per_ip_per_min):
+        raise HTTPException(status_code=429, detail="Too many requests — please slow down")
+
     _check_quota(db, tenant)
 
     question = payload.message.strip()
     if not question:
         raise HTTPException(status_code=400, detail="Empty message")
+    if len(question) > settings.max_message_chars:
+        raise HTTPException(status_code=413, detail="Message too long")
 
     conversation_id = payload.conversation_id or str(uuid.uuid4())
     tenant_id = tenant.id

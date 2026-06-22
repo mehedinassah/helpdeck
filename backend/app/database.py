@@ -41,6 +41,18 @@ def init_db() -> None:
         )
         conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_customer_id varchar(64)"))
         conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS stripe_subscription_id varchar(64)"))
+        conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS widget_key varchar(64)"))
+        conn.execute(text("ALTER TABLE tenants ADD COLUMN IF NOT EXISTS allowed_domains text"))
+        # Backfill a publishable widget key for any tenant created before this column existed.
+        conn.execute(
+            text(
+                "UPDATE tenants SET widget_key = 'wk_' || replace(gen_random_uuid()::text, '-', '') "
+                "WHERE widget_key IS NULL"
+            )
+        )
+        conn.execute(
+            text("CREATE UNIQUE INDEX IF NOT EXISTS idx_tenants_widget_key ON tenants (widget_key)")
+        )
 
 
 def get_db():

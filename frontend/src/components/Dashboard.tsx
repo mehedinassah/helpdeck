@@ -79,7 +79,8 @@ export default function Dashboard({
                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Your API key</p>
                 <code className="tabular mt-0.5 block break-all font-mono text-sm text-slate-800">{apiKey}</code>
                 <p className="mt-1 text-xs text-slate-400">
-                  Save this — it's how you log back in and authenticate the widget.
+                  Secret — use it to log back in and manage your account. Keep it private; the
+                  widget uses a separate publishable key.
                 </p>
               </div>
             </div>
@@ -97,7 +98,7 @@ export default function Dashboard({
         <div className="grid gap-6 lg:grid-cols-3">
           <div className="space-y-6 lg:col-span-2">
             <Documents apiKey={apiKey} onChange={loadUsage} />
-            <EmbedSnippet apiKey={apiKey} name={tenant?.name ?? "Your"} />
+            <EmbedSnippet widgetKey={tenant?.widget_key ?? ""} name={tenant?.name ?? "Your"} />
           </div>
           <div className="space-y-6">
             <UsageCard usage={usage} />

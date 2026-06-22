@@ -37,6 +37,11 @@ class Settings(BaseSettings):
     # CORS (comma-separated, or "*")
     cors_origins: str = "*"
 
+    # Abuse protection for the public chat endpoint
+    chat_rate_per_tenant_per_min: int = 60
+    chat_rate_per_ip_per_min: int = 30
+    max_message_chars: int = 2000
+
     @property
     def cors_origin_list(self) -> list[str]:
         if self.cors_origins.strip() == "*":

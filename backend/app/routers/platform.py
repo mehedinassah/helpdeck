@@ -38,6 +38,7 @@ def provision_tenant(payload: PlatformTenantCreate, db: Session = Depends(get_db
     tenant = Tenant(
         name=payload.name,
         api_key="hd_" + secrets.token_urlsafe(32),
+        widget_key="wk_" + secrets.token_urlsafe(24),
         plan=payload.plan,
         message_limit=payload.message_limit,
         source=payload.source,
