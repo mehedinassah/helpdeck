@@ -109,7 +109,15 @@ def chat(
                 answer_parts.append(token)
                 yield _sse({"type": "token", "text": token})
         except Exception as exc:  # noqa: BLE001
-            yield _sse({"type": "error", "message": str(exc)})
+            import logging
+            import traceback
+            traceback.print_exc()
+            cause = getattr(exc, "__cause__", None)
+            detail = str(exc) or exc.__class__.__name__
+            if cause:
+                detail += f" | cause: {type(cause).__name__}: {cause}"
+            logging.getLogger("helpdeck.chat").error("LLM stream failed: %s", detail)
+            yield _sse({"type": "error", "message": detail})
 
         # Persist assistant answer in a fresh session (generator runs after request scope).
         answer = "".join(answer_parts)
