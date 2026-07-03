@@ -110,14 +110,14 @@ def chat(
                 yield _sse({"type": "token", "text": token})
         except Exception as exc:  # noqa: BLE001
             import logging
-            import traceback
-            traceback.print_exc()
             cause = getattr(exc, "__cause__", None)
-            detail = str(exc) or exc.__class__.__name__
-            if cause:
-                detail += f" | cause: {type(cause).__name__}: {cause}"
-            logging.getLogger("helpdeck.chat").error("LLM stream failed: %s", detail)
-            yield _sse({"type": "error", "message": detail})
+            # Log full detail server-side for debugging; never leak it to the client.
+            logging.getLogger("helpdeck.chat").exception(
+                "LLM stream failed: %s%s",
+                exc,
+                f" | cause: {type(cause).__name__}: {cause}" if cause else "",
+            )
+            yield _sse({"type": "error", "message": "The assistant is temporarily unavailable. Please try again."})
 
         # Persist assistant answer in a fresh session (generator runs after request scope).
         answer = "".join(answer_parts)
