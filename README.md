@@ -3,7 +3,7 @@
 **AI Customer-Support / Knowledge Assistant (RAG).**
 A business uploads its docs/FAQ and gets an embeddable AI chat widget for its website.
 
-Built with **FastAPI + Postgres/pgvector + Groq (LLM) + fastembed (local embeddings)**.
+Built with **FastAPI + Postgres/pgvector + Groq (LLM) + fastembed (local embeddings)**
 
 ---
 
